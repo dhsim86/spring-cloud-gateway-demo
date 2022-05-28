@@ -48,6 +48,9 @@ spring:
       fail-fast: true
       retry:
         max-attempts: 10
+    loadbalancer:
+      ribbon:
+        enabled: false
     gateway:
       default-filters:
         - name: GlobalLoggingFilter
