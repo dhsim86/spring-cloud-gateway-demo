@@ -50,16 +50,32 @@ spring:
         max-attempts: 10
     gateway:
       default-filters:
+        - name: GlobalLoggingFilter
+          args:
+            base-message: GlobalLoggingFilter Message
+            preLogger: true
+            postLogger: true
         - StripPrefix=1
       routes:
         - id: spring-webflux-demo
           uri: lb://webflux-demo
           predicates:
             - "Path=/webflux-demo/**"
+          filters:
+            - AddRequestHeader=webflux-demo, webflux-demo-request-header
+            - AddResponseHeader=webflux-demo, webflux-demo-response-header
+            - LoggingFilter
+        - id: spring-webflux-demo2
+          uri: http://192.168.1.100:30080
+          predicates:
+            - "Path=/webflux-demo2/**"
+          filters:
+            - AddRequestHeader=webflux-demo, webflux-demo2-request-header
+            - AddResponseHeader=webflux-demo, webflux-demo2-response-header
     discovery:
       client:
         simple:
           instances:
             webflux-demo:
-              - uri: http://localhost:30080
-              - uri: http://localhost:30081
+              - uri: http://192.168.1.100:30080
+              - uri: http://192.168.1.100:30081
