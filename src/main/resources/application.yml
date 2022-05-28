@@ -53,7 +53,7 @@ spring:
         - StripPrefix=1
       routes:
         - id: spring-webflux-demo
-          uri: lb://webflux-demo/host-info
+          uri: lb://webflux-demo
           predicates:
             - "Path=/webflux-demo/**"
     discovery:
