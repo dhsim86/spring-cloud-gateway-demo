@@ -56,6 +56,10 @@ spring:
           uri: lb://webflux-demo
           predicates:
             - "Path=/webflux-demo/**"
+        - id: spring-webflux-demo2
+          uri: http://localhost:30080
+          predicates:
+            - "Path=/webflux-demo2/**"
     discovery:
       client:
         simple:
