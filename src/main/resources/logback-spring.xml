@@ -16,7 +16,7 @@
 
     <springProfile name="default, test">
         <logger name="org.springframework" level="info" />
-        <logger name="com.dongho.demo.springwebflux" level="debug" />
+        <logger name="com.dongho.demo.springcloudgatewaydemo" level="debug" />
 
         <logger name="org.hibernate.type.descriptor.sql" level="trace" />
 

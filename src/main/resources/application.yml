@@ -4,3 +4,19 @@ server:
 spring:
   application:
     name: spring-cloud-gateway-demo
+  config:
+    import: "configserver:"
+    activate:
+      on-profile:
+        - default
+  cloud:
+    config:
+      uri: http://localhost:10081
+      name: spring-cloud-gateway-demo
+      profile: dev
+      fail-fast: true
+      retry:
+        max-attempts: 10
+    gateway:
+      default-filters:
+        - StripPrefix=1
