@@ -14,7 +14,7 @@
         </encoder>
     </appender>
 
-    <springProfile name="default, test">
+    <springProfile name="default, standalone">
         <logger name="org.springframework" level="info" />
         <logger name="com.dongho.demo.springcloudgatewaydemo" level="debug" />
 

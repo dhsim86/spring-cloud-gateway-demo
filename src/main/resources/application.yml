@@ -1,5 +1,11 @@
+spring:
+  profiles:
+    active: default
+
 server:
   port: 80
+
+---
 
 spring:
   application:
@@ -20,3 +26,40 @@ spring:
     gateway:
       default-filters:
         - StripPrefix=1
+
+---
+
+server:
+  port: 80
+
+spring:
+  application:
+    name: spring-cloud-gateway-demo
+  config:
+    activate:
+      on-profile:
+        - standalone
+  cloud:
+    config:
+      enabled: false
+      uri: http://localhost:10081
+      name: spring-cloud-gateway-demo
+      profile: dev
+      fail-fast: true
+      retry:
+        max-attempts: 10
+    gateway:
+      default-filters:
+        - StripPrefix=1
+      routes:
+        - id: spring-webflux-demo
+          uri: lb://webflux-demo/host-info
+          predicates:
+            - "Path=/webflux-demo/**"
+    discovery:
+      client:
+        simple:
+          instances:
+            webflux-demo:
+              - uri: http://localhost:30080
+              - uri: http://localhost:30081
