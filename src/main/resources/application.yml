@@ -51,6 +51,8 @@ spring:
     loadbalancer:
       ribbon:
         enabled: false
+      cache:
+        enabled: false
     gateway:
       default-filters:
         - name: GlobalLoggingFilter
@@ -76,14 +78,14 @@ spring:
             - AddResponseHeader=webflux-demo, webflux-demo-response-header
             - LoggingFilter
         - id: spring-webflux-demo-nolb
-          uri: http://localhost:30080
+          uri: http://192.168.1.100:30080
           predicates:
             - "Path=/webflux-demo-nolb/**"
           filters:
             - AddRequestHeader=webflux-demo, webflux-demo2-request-header
             - AddResponseHeader=webflux-demo, webflux-demo2-response-header
         - id: spring-webflux-demo-fallback
-          uri: http://localhost:30082
+          uri: http://192.168.1.100:30082
           predicates:
             - "Path=/webflux-demo-fallback/**"
           filters:
@@ -104,8 +106,8 @@ spring:
         simple:
           instances:
             webflux-demo:
-              - uri: http://localhost:30080
-              - uri: http://localhost:30081
+              - uri: http://192.168.1.100:30080
+              - uri: http://192.168.1.100:30081
 
 resilience4j:
   circuitbreaker:
