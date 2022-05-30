@@ -58,8 +58,15 @@ spring:
             base-message: GlobalLoggingFilter Message
             preLogger: true
             postLogger: true
+        - name: CircuitBreaker
+          args:
+            fallbackUri: foward:/strip/fallback
         - StripPrefix=1
       routes:
+        - id: fallbackUri
+          uri: lb://webflux-demo
+          predicates:
+            - "Path=/strip/fallback/**"
         - id: spring-webflux-demo
           uri: lb://webflux-demo
           predicates:
@@ -68,17 +75,69 @@ spring:
             - AddRequestHeader=webflux-demo, webflux-demo-request-header
             - AddResponseHeader=webflux-demo, webflux-demo-response-header
             - LoggingFilter
-        - id: spring-webflux-demo2
-          uri: http://192.168.1.100:30080
+        - id: spring-webflux-demo-nolb
+          uri: http://localhost:30080
           predicates:
-            - "Path=/webflux-demo2/**"
+            - "Path=/webflux-demo-nolb/**"
           filters:
             - AddRequestHeader=webflux-demo, webflux-demo2-request-header
             - AddResponseHeader=webflux-demo, webflux-demo2-response-header
+        - id: spring-webflux-demo-fallback
+          uri: http://localhost:30082
+          predicates:
+            - "Path=/webflux-demo-fallback/**"
+          filters:
+            - name: CircuitBreaker
+              args:
+                fallbackUri: foward:/strip/fallback
+        - id: spring-webflux-demo-circuitbreaker
+          uri: lb://webflux-demo
+          predicates:
+            - "Path=/webflux-demo-circuitbreaker/**"
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: webflux-demo
+                fallbackUri: foward:/strip/fallback
     discovery:
       client:
         simple:
           instances:
             webflux-demo:
-              - uri: http://192.168.1.100:30080
-              - uri: http://192.168.1.100:30081
+              - uri: http://localhost:30080
+              - uri: http://localhost:30081
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        registerHealthIndicator: false
+        slidingWindowType: TIME_BASED
+        minimumNumberOfCalls: 50
+        waitDurationInOpenState: 2s
+      someShared:
+        slidingWindowSize: 50
+        permittedNumberOfCallsInHalfOpenState: 10
+    instances:
+      webflux-demo:
+        baseConfig: default
+        failureRateThreshold: 20
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 5s
+    instances:
+      webflux-demo:
+        baseConfig: default
+        timeoutDuration: 2s
+  ratelimiter:
+    configs:
+      default:
+        limitForPeriod: 10
+    instances:
+      webflux-demo:
+        baseConfig: default
