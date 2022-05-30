@@ -62,7 +62,7 @@ spring:
             postLogger: true
         - name: CircuitBreaker
           args:
-            fallbackUri: foward:/strip/fallback
+            fallbackUri: forward:/strip/fallback
         - StripPrefix=1
       routes:
         - id: fallbackUri
@@ -91,7 +91,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                fallbackUri: foward:/strip/fallback
+                fallbackUri: forward:/strip/fallback
         - id: spring-webflux-demo-circuitbreaker
           uri: lb://webflux-demo
           predicates:
@@ -100,7 +100,7 @@ spring:
             - name: CircuitBreaker
               args:
                 name: webflux-demo
-                fallbackUri: foward:/strip/fallback
+                fallbackUri: forward:/strip/fallback
     discovery:
       client:
         simple:
