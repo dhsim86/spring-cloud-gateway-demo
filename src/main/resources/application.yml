@@ -49,34 +49,41 @@ spring:
       retry:
         max-attempts: 10
     loadbalancer:
-      ribbon:
-        enabled: false
-      cache:
-        enabled: false
+      zone: ar
+      retry:
+        enabled: true
+        max-retries-on-next-service-instance: 1
+        max-retries-on-same-service-instance: 1
+        avoid-previous-instance: false
+        retryable-status-codes: 500, 501, 502, 503
+        retry-on-all-operations: true
+      health-check:
+        refetch-instances: true
+        refetch-instances-interval: 5s
+        repeat-health-check: false
+        interval: 5s
+        path:
+          default: ""
+          webflux-demo: "/host-info"
     gateway:
+      httpclient:
+        response-timeout: 3s
+        connect-timeout: 2000
       default-filters:
         - name: GlobalLoggingFilter
           args:
             base-message: GlobalLoggingFilter Message
             preLogger: true
             postLogger: true
-        - name: CircuitBreaker
-          args:
-            fallbackUri: forward:/strip/fallback
+        #- name: CircuitBreaker
+        #  args:
+        #    fallbackUri: forward:/strip/fallback
         - StripPrefix=1
       routes:
         - id: fallbackUri
           uri: lb://webflux-demo
           predicates:
             - "Path=/strip/fallback/**"
-        - id: spring-webflux-demo
-          uri: lb://webflux-demo
-          predicates:
-            - "Path=/webflux-demo/**"
-          filters:
-            - AddRequestHeader=webflux-demo, webflux-demo-request-header
-            - AddResponseHeader=webflux-demo, webflux-demo-response-header
-            - LoggingFilter
         - id: spring-webflux-demo-nolb
           uri: http://localhost:30080
           predicates:
@@ -101,13 +108,28 @@ spring:
               args:
                 name: webflux-demo
                 fallbackUri: forward:/strip/fallback
+        - id: spring-webflux-demo
+          uri: lb://webflux-demo
+          predicates:
+            - "Path=/webflux-demo/**"
+          filters:
+            - AddRequestHeader=webflux-demo, webflux-demo-request-header
+            - AddResponseHeader=webflux-demo, webflux-demo-response-header
+            - LoggingFilter
     discovery:
       client:
         simple:
           instances:
             webflux-demo:
               - uri: http://localhost:30080
+                metadata:
+                  zone: "cr"
               - uri: http://localhost:30081
+                metadata:
+                  zone: ""
+              - uri: http://localhost:30082
+                metadata:
+                  zone: "ar"
 
 resilience4j:
   circuitbreaker:
@@ -143,3 +165,12 @@ resilience4j:
     instances:
       webflux-demo:
         baseConfig: default
+
+management:
+  server:
+    port: 19010
+  endpoints:
+    web:
+      base-path: /monitoring
+      exposure:
+        include: configprops, gateway, health
