@@ -79,18 +79,27 @@ spring:
         #  args:
         #    fallbackUri: forward:/strip/fallback
         - StripPrefix=1
+        - name: Retry #모든 method중 두가지 Exception 발생시만 2회 retry
+          args:
+            retries: 2
+            exceptions:
+              - io.netty.channel.ConnectTimeoutException
+              - reactor.netty.http.client.PrematureCloseException
+            series: #defalut(SERVER_ERROR)라서 empty로 설정
+            methods: #ALL
+              - GET
+              - HEAD
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+              - TRACE
       routes:
         - id: fallbackUri
           uri: lb://webflux-demo
           predicates:
             - "Path=/strip/fallback/**"
-        - id: spring-webflux-demo-nolb
-          uri: http://localhost:30080
-          predicates:
-            - "Path=/webflux-demo-nolb/**"
-          filters:
-            - AddRequestHeader=webflux-demo, webflux-demo2-request-header
-            - AddResponseHeader=webflux-demo, webflux-demo2-response-header
         - id: spring-webflux-demo-fallback
           uri: http://localhost:30082
           predicates:
@@ -108,6 +117,10 @@ spring:
               args:
                 name: webflux-demo
                 fallbackUri: forward:/strip/fallback
+        - id: spring-webflux-demo-nolb
+          uri: http://localhost:30080
+          predicates:
+            - "Path=/webflux-demo-nolb/**"
         - id: spring-webflux-demo
           uri: lb://webflux-demo
           predicates:
@@ -123,11 +136,8 @@ spring:
             webflux-demo:
               - uri: http://localhost:30080
                 metadata:
-                  zone: "cr"
+                  zone: "ar"
               - uri: http://localhost:30081
-                metadata:
-                  zone: ""
-              - uri: http://localhost:30082
                 metadata:
                   zone: "ar"
 
